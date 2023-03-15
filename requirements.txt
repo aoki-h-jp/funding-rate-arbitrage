@@ -1,0 +1,2 @@
+ccxt
+pandas
