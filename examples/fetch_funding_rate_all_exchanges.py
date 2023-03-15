@@ -5,6 +5,8 @@ from frarb import FundingRateArbitrage
 
 
 if __name__ == '__main__':
-    # fetch from binance
+    # fetch from all exchanges
     fr = FundingRateArbitrage()
-    print(fr.fetch_all_funding_rate(exchange='binance'))
+    for ex in fr.get_exchanges():
+        print(ex)
+        print(fr.fetch_all_funding_rate(exchange=ex))
