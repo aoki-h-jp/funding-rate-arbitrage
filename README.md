@@ -19,16 +19,29 @@ This library can detect perpetual contract with a large divergence in funding ra
 
 **NOTE: This library does not include the feature to perform automatic funding rate arbitrage.**
 
-[//]: # (## Installation)
+## Installation
 
-[//]: # ()
-[//]: # (```bash)
 
-[//]: # (pip install funding-rate-arbitrage)
+```bash
 
-[//]: # (```)
+git clone https://github.com/aoki-h-jp/funding-rate-arbitrage.git
+pip install funding-rate-arbitrage
 
-[//]: # (## Example)
+```
+
+## Usage
+```python
+from frarb import FundingRateArbitrage
+
+fr = FundingRateArbitrage()
+
+# fetch all perp funding rate on binance
+fr_binance = fr.fetch_all_funding_rate(exchange='binance')
+
+# get commission on binance with futures, maker
+cm_binance = fr.get_commission(exchange='binance', trade='futures', taker=False)
+```
+
 
 ## Disclaimer
 This project is for educational purposes only. You should not construe any such information or other material as legal,
