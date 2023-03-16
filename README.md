@@ -74,6 +74,16 @@ MKR/USDT:USDT  0.010000  0.0100 -0.056437  0.0104  0.0100  0.075530        0.131
 TON/USDT:USDT       NaN     NaN -0.023741     NaN  0.0100 -0.116483        0.126483           0.200            -0.073517
 ```
 
+## Future works
+- Figure funding rate history. (1.2.0)
+- Get trading volume in 24 hours and filter outputs. (1.X.X)
+- Get price divergence between spot and perpetual contract and filter outputs. (1.X.X)
+- Support KuCoin, MEXC. (1.X.X)
+- Notify discord, slack by webhook. (1.X.X)
+- Implement unittest. (1.X.X)
+- Perform automatic funding rate arbitrage. (2.X.X)
+- Predict funding rate by open interest, etc. (2.X.X)
+- Support DEXs. (2.X.X)
 
 ## Disclaimer
 This project is for educational purposes only. You should not construe any such information or other material as legal,
