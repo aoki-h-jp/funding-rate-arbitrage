@@ -171,6 +171,16 @@ class FundingRateArbitrage:
         return df
 
     def display_one_by_one_single_exchange(self, exchange: str, minus=False, display_num=10):
+        """
+
+        Args:
+            exchange (str): Name of exchange (binance, bybit, ...)
+            minus (bool): Sorted by minus FR or plus FR.
+            display_num (int): Number of display.
+
+        Returns: None
+
+        """
         df = self.get_large_divergence_dataframe_single_exchange(exchange=exchange, minus=minus)
         # TODO: Check perp or spot or options exists on CEX.
         for i in df.sort_values(by='Funding Rate [%]', ascending=minus).head(display_num).index:
@@ -190,6 +200,15 @@ class FundingRateArbitrage:
             print(f'Commission: {df.loc[i]["Commission [%]"]} %')
 
     def display_one_by_one_multi_exchanges(self, display_num=10, sorted_by='revenue'):
+        """
+
+        Args:
+            display_num (int): Number of display.
+            sorted_by (str): Sorted by "revenue" or "divergence"
+
+        Returns: None
+
+        """
         if sorted_by == 'revenue':
             sorted_by = 'Revenue [/100 USDT]'
         elif sorted_by == 'divergence':
