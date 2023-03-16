@@ -5,6 +5,9 @@ import pandas as pd
 class FundingRateArbitrage:
     def __init__(self):
         self.exchanges = ['binance', 'bybit', 'okx', 'bitget', 'gate', 'coinex']
+        # commission
+        self.is_taker = True
+        self.by_token = False
 
     @staticmethod
     def fetch_all_funding_rate(exchange: str) -> dict:
@@ -21,6 +24,37 @@ class FundingRateArbitrage:
         info = ex.load_markets()
         perp = [p for p in info if info[p]['linear']]
         return {p: ex.fetch_funding_rate(p)['fundingRate'] for p in perp}
+
+    def display_large_divergence_single_exchange(self, exchange: str, minus=False, display_num=10) -> pd.DataFrame:
+        """
+        Display large funding rate divergence on single CEX.
+        Args:
+            exchange (str): Name of exchange (binance, bybit, ...)
+            minus (bool): Sorted by minus FR or plus FR.
+            display_num (int): Number of display.
+
+        Returns (pd.DataFrame): DataFrame sorted by large funding rate divergence.
+
+        """
+        fr = self.fetch_all_funding_rate(exchange=exchange)
+        columns = ['Funding Rate [%]', 'Commission [%]', 'Revenue [/100 USDT]']
+        sr_fr = pd.Series(list(fr.values())) * 100
+        if minus:
+            cm = self.get_commission(exchange=exchange, trade='futures', taker=self.is_taker, by_token=self.by_token)\
+                 + self.get_commission(exchange=exchange, trade='options', taker=self.is_taker, by_token=self.by_token)\
+                 + self.get_commission(exchange=exchange, trade='spot', taker=self.is_taker, by_token=self.by_token)
+            sr_cm = pd.Series([cm * 2 for i in range(len(sr_fr))])
+            sr_rv = abs(sr_fr) - sr_cm
+        else:
+            cm = self.get_commission(exchange=exchange, trade='futures', taker=self.is_taker, by_token=self.by_token) \
+                 + self.get_commission(exchange=exchange, trade='spot', taker=self.is_taker, by_token=self.by_token)
+            sr_cm = pd.Series([cm * 2 for i in range(len(sr_fr))])
+            sr_rv = sr_fr - sr_cm
+
+        df = pd.concat([sr_fr, sr_cm, sr_rv], axis=1)
+        df.index = list(fr.keys())
+        df.columns = columns
+        return df.sort_values(by=columns[0], ascending=minus).head(display_num)
 
     def get_exchanges(self) -> list:
         """
@@ -74,6 +108,8 @@ class FundingRateArbitrage:
                         return 0.018
                     else:
                         return 0.02
+            elif trade == 'options':
+                return 0.02
             else:
                 raise KeyError
 
@@ -86,6 +122,8 @@ class FundingRateArbitrage:
                     return 0.06
                 else:
                     return 0.01
+            elif trade == 'options':
+                return 0.03
             else:
                 raise KeyError
 
@@ -99,6 +137,11 @@ class FundingRateArbitrage:
             elif trade == 'futures':
                 if taker:
                     return 0.05
+                else:
+                    return 0.02
+            elif trade == 'options':
+                if taker:
+                    return 0.03
                 else:
                     return 0.02
             else:
