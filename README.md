@@ -23,13 +23,12 @@ This library can detect perpetual contract with a large divergence in funding ra
 
 
 ```bash
-
 git clone https://github.com/aoki-h-jp/funding-rate-arbitrage.git
 pip install funding-rate-arbitrage
-
 ```
 
 ## Usage
+### Fetch FR & commission
 ```python
 from frarb import FundingRateArbitrage
 
@@ -40,6 +39,18 @@ fr_binance = fr.fetch_all_funding_rate(exchange='binance')
 
 # get commission on binance with futures, maker
 cm_binance = fr.get_commission(exchange='binance', trade='futures', taker=False)
+```
+
+### Display large FR divergence on single CEX
+```python
+# display large funding rate divergence on bybit
+>>> fr.display_large_divergence_single_exchange(exchange='bybit', display_num=5)
+                 Funding Rate [%]  Commission [%]  Revenue [/100 USDT]
+CTC/USDT:USDT              0.1794            0.32              -0.1406
+CREAM/USDT:USDT            0.0338            0.32              -0.2862
+TWT/USDT:USDT              0.0295            0.32              -0.2905
+TLM/USDT:USDT              0.0252            0.32              -0.2948
+JASMY/USDT:USDT            0.0100            0.32              -0.3100
 ```
 
 
