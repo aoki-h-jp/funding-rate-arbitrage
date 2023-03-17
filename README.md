@@ -41,6 +41,18 @@ fr_binance = fr.fetch_all_funding_rate(exchange='binance')
 cm_binance = fr.get_commission(exchange='binance', trade='futures', taker=False)
 ```
 
+### Fetch FR history
+```python
+from frarb import FundingRateArbitrage
+
+fr = FundingRateArbitrage()
+
+# figure funding rate history
+fr.fetch_funding_rate_history(exchange='binance', symbol='BTC/USDT:USDT')
+```
+!['funding rate history example'](./img/readme_funding_rate_history.png)
+
+
 ### Display large FR divergence on single CEX
 ```python
 # display large funding rate divergence on bybit
@@ -51,6 +63,72 @@ CREAM/USDT:USDT            0.0338            0.32              -0.2862
 TWT/USDT:USDT              0.0295            0.32              -0.2905
 TLM/USDT:USDT              0.0252            0.32              -0.2948
 JASMY/USDT:USDT            0.0100            0.32              -0.3100
+
+# display Top 5 large funding rate divergence on bybit one by one.
+>>> fr.display_one_by_one_single_exchange(exchange='bybit', display_num=5)
+------------------------------------------------
+Revenue: -0.1663 / 100USDT
+SELL: CTC/USDT:USDT Perp
+BUY: CTC/USDT:USDT Spot
+Funding Rate: 0.1537 %
+Commission: 0.32 %
+------------------------------------------------
+Revenue: -0.17200000000000001 / 100USDT
+SELL: CREAM/USDT:USDT Perp
+BUY: CREAM/USDT:USDT Spot
+Funding Rate: 0.1480 %
+Commission: 0.32 %
+------------------------------------------------
+Revenue: -0.2107 / 100USDT
+SELL: BOBA/USDT:USDT Perp
+BUY: BOBA/USDT:USDT Spot
+Funding Rate: 0.1093 %
+Commission: 0.32 %
+------------------------------------------------
+Revenue: -0.2854 / 100USDT
+SELL: TLM/USDT:USDT Perp
+BUY: TLM/USDT:USDT Spot
+Funding Rate: 0.0346 %
+Commission: 0.32 %
+------------------------------------------------
+Revenue: -0.2953 / 100USDT
+SELL: TOMO/USDT:USDT Perp
+BUY: TOMO/USDT:USDT Spot
+Funding Rate: 0.0247 %
+Commission: 0.32 %
+
+# display Top 5 large funding rate divergence on bybit one by one (minus FR).
+>>> fr.display_one_by_one_single_exchange(exchange='bybit', display_num=5, minus=True)
+------------------------------------------------
+Revenue: -0.1458 / 100USDT
+SELL: ARPA/USDT:USDT Options
+BUY: ARPA/USDT:USDT Perp
+Funding Rate: -0.2342 %
+Commission: 0.38 %
+------------------------------------------------
+Revenue: -0.2569 / 100USDT
+SELL: MASK/USDT:USDT Options
+BUY: MASK/USDT:USDT Perp
+Funding Rate: -0.1231 %
+Commission: 0.38 %
+------------------------------------------------
+Revenue: -0.3056 / 100USDT
+SELL: APE/USD:USDC Options
+BUY: APE/USD:USDC Perp
+Funding Rate: -0.0744 %
+Commission: 0.38 %
+------------------------------------------------
+Revenue: -0.3158 / 100USDT
+SELL: SWEAT/USD:USDC Options
+BUY: SWEAT/USD:USDC Perp
+Funding Rate: -0.0642 %
+Commission: 0.38 %
+------------------------------------------------
+Revenue: -0.3166 / 100USDT
+SELL: APE/USDT:USDT Options
+BUY: APE/USDT:USDT Perp
+Funding Rate: -0.0634 %
+Commission: 0.38 %
 ```
 
 ### Display large FR divergence between CEX
@@ -72,6 +150,39 @@ HNT/USDT:USDT -0.030722 -0.0141       NaN     NaN  0.0051  0.304442        0.335
 OP/USDT:USDT  -0.057856 -0.0235 -0.206011 -0.0589 -0.0162 -0.148713        0.189811           0.200            -0.010189
 MKR/USDT:USDT  0.010000  0.0100 -0.056437  0.0104  0.0100  0.075530        0.131967           0.200            -0.068033
 TON/USDT:USDT       NaN     NaN -0.023741     NaN  0.0100 -0.116483        0.126483           0.200            -0.073517
+
+# Display Top 5 large funding rate divergence between multi exchange.
+>>> fr.display_one_by_one_multi_exchanges(display_num=5)
+------------------------------------------------
+Revenue: 0.2184 USDT / 100USDT
+SELL: coinex IOTA/USDT:USDT Perp (Funding Rate 0.3478 %)
+BUY: okx IOTA/USDT:USDT Perp (Funding Rate -0.0706 %)
+Divergence: 0.4184 %
+Commission: 0.2000 %
+------------------------------------------------
+Revenue: 0.1191 USDT / 100USDT
+SELL: coinex DASH/USDT:USDT Perp (Funding Rate 0.4267 %)
+BUY: okx DASH/USDT:USDT Spot
+Divergence: 0.4191 %
+Commission: 0.3000 %
+------------------------------------------------
+Revenue: 0.1080 USDT / 100USDT
+SELL: okx TON/USDT:USDT Perp (Funding Rate 0.0482 %)
+BUY: coinex TON/USDT:USDT Perp (Funding Rate -0.2598 %)
+Divergence: 0.3080 %
+Commission: 0.2000 %
+------------------------------------------------
+Revenue: 0.0842 USDT / 100USDT
+SELL: binance GMX/USDT:USDT Perp (Funding Rate 0.0100 %)
+BUY: coinex GMX/USDT:USDT Perp (Funding Rate -0.2542 %)
+Divergence: 0.2642 %
+Commission: 0.1800 %
+------------------------------------------------
+Revenue: 0.0447 USDT / 100USDT
+SELL: okx FIL/USDT:USDT Perp (Funding Rate 0.2416 %)
+BUY: gate FIL/USDT:USDT Perp (Funding Rate -0.0031 %)
+Divergence: 0.2447 %
+Commission: 0.2000 %
 ```
 
 ## Future works
