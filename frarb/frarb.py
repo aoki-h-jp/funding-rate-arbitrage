@@ -2,11 +2,13 @@
 Main class of funding-rate-arbitrage
 """
 import logging
+from datetime import datetime
 import ccxt
 from rich import print
 from rich.logging import RichHandler
 from ccxt import ExchangeError
 import pandas as pd
+import matplotlib.pyplot as plt
 
 logging.basicConfig(
     level=logging.INFO,
@@ -45,6 +47,40 @@ class FundingRateArbitrage:
             except ExchangeError:
                 log.exception(f'{p} is not perp.')
         return fr_d
+
+    @staticmethod
+    def fetch_funding_rate_history(exchange: str, symbol: str) -> None:
+        """
+        Fetch funding rates on all perpetual contracts listed on the exchange.
+
+        Args:
+            exchange (str): Name of exchange (binance, bybit, ...)
+            symbol (str): Symbol (BTC/USDT:USDT, ETH/USDT:USDT, ...).
+
+        Returns (dict): Dict of perpetual contract pair and funding rate.
+
+        """
+        ex = getattr(ccxt, exchange)()
+        funding_history_dict = ex.fetch_funding_rate_history(symbol=symbol)
+        funding_time = [datetime.fromtimestamp(d['timestamp'] * 0.001) for d in funding_history_dict]
+        funding_rate = [d['fundingRate'] * 100 for d in funding_history_dict]
+        plt.plot(funding_time, funding_rate, label='funding rate')
+        plt.hlines(
+            xmin=funding_time[0],
+            xmax=funding_time[-1],
+            y=sum(funding_rate) / len(funding_rate),
+            label='average',
+            colors='r',
+            linestyles='-.'
+        )
+        plt.title(f'Funding rate history {symbol}')
+        plt.xlabel('timestamp')
+        plt.ylabel('Funding rate [%]')
+        plt.xticks(rotation=45)
+        plt.yticks(rotation=45)
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
 
     def display_large_divergence_single_exchange(self, exchange: str, minus=False, display_num=10) -> pd.DataFrame:
         """

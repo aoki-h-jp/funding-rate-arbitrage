@@ -1,3 +1,4 @@
 ccxt
 pandas
 rich
+matplotlib

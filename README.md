@@ -41,6 +41,18 @@ fr_binance = fr.fetch_all_funding_rate(exchange='binance')
 cm_binance = fr.get_commission(exchange='binance', trade='futures', taker=False)
 ```
 
+### Fetch FR history
+```python
+from frarb import FundingRateArbitrage
+
+fr = FundingRateArbitrage()
+
+# figure funding rate history
+fr.fetch_funding_rate_history(exchange='binance', symbol='BTC/USDT:USDT')
+```
+!['funding rate history example'](./img/readme_funding_rate_history.png)
+
+
 ### Display large FR divergence on single CEX
 ```python
 # display large funding rate divergence on bybit
