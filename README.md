@@ -185,6 +185,22 @@ Divergence: 0.2447 %
 Commission: 0.2000 %
 ```
 
+### Fetch price divergence
+```python
+# fetch price divergence on binance.
+>>> fr.fetch_price_divergence_single_exchange(exchange='binance')
+# {'ALPHA/USDT': 0.1108033240997313, 'CTK/USDT': 0.06443298969071455, 'SKL/USDT': 0.04746084480305203, 'ZRX/USDT': 0.04393673110721298, 'AUDIO/USDT': 0.03880481179665852,...}
+
+# fetch price divergence between multi CEXs futures.
+>>> print(fr.fetch_price_divergence_multi_exchanges(display_num=5))
+               binance    bybit           okx  bitget          gate        coinex  Divergence [USDT]  Divergence [%]
+GPT/USDT:USDT      NaN  0.12230           NaN     NaN  1.180000e-01           NaN       4.300000e-03        3.644068
+HNT/USDT:USDT   1.6460  1.66400           NaN     NaN  1.670000e+00  1.649900e+00       2.400000e-02        1.458080
+BSW/USDT:USDT      NaN  0.18890           NaN     NaN  1.866000e-01           NaN       2.300000e-03        1.232583
+IMX/USDT:USDT   1.3411  1.34060  1.327000e+00  1.3404  1.341000e+00  1.341000e+00       1.410000e-02        1.062547
+NFT/USDT:USDT      NaN      NaN  4.148000e-07     NaN  4.190000e-07  4.148000e-07       4.200000e-09        1.012536
+```
+
 ## Future works
 - Get trading volume in 24 hours and filter outputs. (1.3.0)
 - Get price divergence between spot and perpetual contract and filter outputs. (1.3.0)

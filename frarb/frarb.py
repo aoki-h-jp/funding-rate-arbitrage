@@ -2,6 +2,7 @@
 Main class of funding-rate-arbitrage
 """
 import logging
+import warnings
 from datetime import datetime
 import ccxt
 from rich import print
@@ -17,6 +18,7 @@ logging.basicConfig(
     handlers=[RichHandler(rich_tracebacks=True)]
 )
 log = logging.getLogger("rich")
+warnings.simplefilter('ignore')
 
 
 class FundingRateArbitrage:
@@ -82,6 +84,62 @@ class FundingRateArbitrage:
         plt.tight_layout()
         plt.show()
 
+    @staticmethod
+    def fetch_price_divergence_single_exchange(exchange: str):
+        """
+        Fetch price divergence on single CEX between spot and futures.
+        Args:
+            exchange (str): Name of exchange (binance, bybit, ...)
+
+        Returns (dict): Price divergence dict sorted by divergence.
+                        {"symbol": divergence, "symbol": divergence, ...}
+
+        """
+        ex = getattr(ccxt, exchange)()
+        res = {}
+        for d in ex.fetch_markets():
+            if ':' in d['symbol'] and d['symbol'].split(':')[1] == 'USDT':
+                futures = d['symbol']
+                spot = d['symbol'].split(':')[0]
+                try:
+                    spot_price = ex.fetch_last_prices(symbols=[spot])[spot]['price']
+                    futures_price = ex.fetch_ticker(futures)['close']
+                    divergence = (futures_price - spot_price) / spot_price
+                    res[spot] = divergence * 100
+                except (ExchangeError, TypeError):
+                    pass
+        return dict(sorted(res.items(), key=lambda x: x[1], reverse=True))
+
+    def fetch_price_divergence_multi_exchanges(self, display_num=10):
+        """
+        Fetch price divergence on multi CEXs between futures and futures.
+        "multi CEXs" refers to self.exchanges.
+        Returns (dict): Price divergence dict sorted by divergence.
+                        {"symbol": divergence, "symbol": divergence, ...}
+
+        """
+        # res = {}
+        df = pd.DataFrame()
+        for exchange in self.exchanges:
+            log.info(f'fetching {exchange}')
+            ex = getattr(ccxt, exchange)()
+            for d in ex.fetch_markets():
+                if ':' in d['symbol'] and d['symbol'].split(':')[1] == 'USDT':
+                    futures = d['symbol']
+                    try:
+                        df.loc[exchange, futures] = ex.fetch_ticker(futures)['close']
+                    except (ExchangeError, TypeError):
+                        pass
+        df = df.T
+        for i in df.index:
+            max_price = float(df.loc[i].max())
+            min_price = float(df.loc[i].min())
+            divergence = max_price - min_price
+            divergence_percent = divergence / min_price * 100
+            df.loc[i, 'Divergence [USDT]'] = divergence
+            df.loc[i, 'Divergence [%]'] = divergence_percent
+        return df.sort_values(by='Divergence [%]', ascending=False).head(display_num)
+
     def display_large_divergence_single_exchange(self, exchange: str, minus=False, display_num=10) -> pd.DataFrame:
         """
         Display large funding rate divergence on single CEX.
@@ -98,8 +156,8 @@ class FundingRateArbitrage:
 
     def display_large_divergence_multi_exchange(self, display_num=10, sorted_by='revenue') -> pd.DataFrame:
         """
-        Display large funding rate divergence between multi CEX.
-        "multi CEX" refers to self.exchanges.
+        Display large funding rate divergence between multi CEXs.
+        "multi CEXs" refers to self.exchanges.
         Args:
             display_num (int): Number of display.
             sorted_by (str): Sorted by "revenue" or "divergence"
