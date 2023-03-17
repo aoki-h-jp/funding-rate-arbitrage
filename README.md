@@ -186,9 +186,8 @@ Commission: 0.2000 %
 ```
 
 ## Future works
-- Figure funding rate history. (1.2.0)
-- Get trading volume in 24 hours and filter outputs. (1.X.X)
-- Get price divergence between spot and perpetual contract and filter outputs. (1.X.X)
+- Get trading volume in 24 hours and filter outputs. (1.3.0)
+- Get price divergence between spot and perpetual contract and filter outputs. (1.3.0)
 - Support KuCoin, MEXC. (1.X.X)
 - Notify discord, slack by webhook. (1.X.X)
 - Implement unittest. (1.X.X)
