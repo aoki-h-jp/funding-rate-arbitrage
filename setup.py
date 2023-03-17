@@ -1,4 +1,5 @@
 from setuptools import setup
+from setuptools import find_packages
 
 setup(
     name='funding-rate-arbitrage',
@@ -8,5 +9,9 @@ setup(
     install_requires=['ccxt', 'pandas'],
     author='aoki-h-jp',
     author_email='aoki.hirotaka.biz@gmail.com',
-    license='MIT'
+    license='MIT',
+    packages=find_packages(
+        include=['frarb'],
+        exclude=['img']
+    )
 )
