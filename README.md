@@ -1,9 +1,6 @@
 # funding-rate-arbitrage
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110//)
 
-## Note
-This is work in progress.
-
 ## Python library for funding rate arbitrage
 
 A framework to help you easily perform funding rate arbitrage on the following major centralized cryptocurrency exchanges (CEX).
@@ -19,12 +16,14 @@ This library can detect perpetual contract with a large divergence in funding ra
 
 **NOTE: This library does not include the feature to perform automatic funding rate arbitrage.**
 
+## What's FR Arbitrage?
+Arbitrage of different funding rates among different exchanges is another trading strategy that takes advantage of the disparity in funding rates for the same cryptocurrency perpetual contracts between exchanges. It involves combining long positions with low funding rates from one exchange with short positions from another exchange with higher funding rates to generate profits. Funding rates are periodic payments between long and short traders to ensure that the perpetual contract price remains close to the underlying asset price.
+
 ## Installation
 
 
 ```bash
 pip install git+https://github.com/aoki-h-jp/funding-rate-arbitrage
-```
 
 ## Usage
 ### Fetch FR & commission
@@ -185,7 +184,6 @@ BUY: gate FIL/USDT:USDT Perp (Funding Rate -0.0031 %)
 Divergence: 0.2447 %
 Commission: 0.2000 %
 ```
-
 
 ## Disclaimer
 This project is for educational purposes only. You should not construe any such information or other material as legal,
