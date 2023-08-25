@@ -23,8 +23,7 @@ This library can detect perpetual contract with a large divergence in funding ra
 
 
 ```bash
-git clone https://github.com/aoki-h-jp/funding-rate-arbitrage.git
-pip install funding-rate-arbitrage
+pip install https://github.com/aoki-h-jp/funding-rate-arbitrage
 ```
 
 ## Usage
