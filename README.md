@@ -29,8 +29,9 @@ pip install funding-rate-arbitrage
 
 ## Usage
 ### Fetch FR & commission
+
 ```python
-from frarb import FundingRateArbitrage
+from funding_rate_arbitrage import FundingRateArbitrage
 
 fr = FundingRateArbitrage()
 
@@ -42,8 +43,9 @@ cm_binance = fr.get_commission(exchange='binance', trade='futures', taker=False)
 ```
 
 ### Fetch FR history
+
 ```python
-from frarb import FundingRateArbitrage
+from funding_rate_arbitrage import FundingRateArbitrage
 
 fr = FundingRateArbitrage()
 
