@@ -24,6 +24,7 @@ Arbitrage of different funding rates among different exchanges is another tradin
 
 ```bash
 pip install git+https://github.com/aoki-h-jp/funding-rate-arbitrage
+```
 
 ## Usage
 ### Fetch FR & commission
