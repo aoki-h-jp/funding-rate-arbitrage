@@ -4,9 +4,11 @@ Main class of funding-rate-arbitrage
 import logging
 from datetime import datetime
 import ccxt
+from numpy import ndarray
 from rich import print
 from rich.logging import RichHandler
 from ccxt import ExchangeError
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -49,21 +51,35 @@ class FundingRateArbitrage:
         return fr_d
 
     @staticmethod
-    def fetch_funding_rate_history(exchange: str, symbol: str) -> None:
+    def fetch_funding_rate_history(exchange: str, symbol: str) -> tuple:
         """
-        Fetch funding rates on all perpetual contracts listed on the exchange.
+        Fetch funding rates on perpetual contracts listed on the exchange.
 
         Args:
             exchange (str): Name of exchange (binance, bybit, ...)
             symbol (str): Symbol (BTC/USDT:USDT, ETH/USDT:USDT, ...).
 
-        Returns (dict): Dict of perpetual contract pair and funding rate.
+        Returns (tuple): settlement time, funding rate.
 
         """
         ex = getattr(ccxt, exchange)()
         funding_history_dict = ex.fetch_funding_rate_history(symbol=symbol)
         funding_time = [datetime.fromtimestamp(d['timestamp'] * 0.001) for d in funding_history_dict]
         funding_rate = [d['fundingRate'] * 100 for d in funding_history_dict]
+        return funding_time, funding_rate
+
+    def figure_funding_rate_history(self, exchange: str, symbol: str) -> None:
+        """
+        Figure funding rates on perpetual contracts listed on the exchange.
+
+        Args:
+            exchange (str): Name of exchange (binance, bybit, ...)
+            symbol (str): Symbol (BTC/USDT:USDT, ETH/USDT:USDT, ...).
+
+        Returns: None
+
+        """
+        funding_time, funding_rate = self.fetch_funding_rate_history(exchange=exchange, symbol=symbol)
         plt.plot(funding_time, funding_rate, label='funding rate')
         plt.hlines(
             xmin=funding_time[0],
@@ -81,6 +97,20 @@ class FundingRateArbitrage:
         plt.legend()
         plt.tight_layout()
         plt.show()
+
+    def get_funding_rate_volatility(self, exchange: str, symbol: str) -> ndarray:
+        """
+        Get funding rate standard deviation volatility on all perpetual contracts listed on the exchange.
+
+        Args:
+            exchange (str): Name of exchange (binance, bybit, ...)
+            symbol (str): Symbol (BTC/USDT:USDT, ETH/USDT:USDT, ...).
+
+        Returns: Funding rate standard deviation volatility.
+
+        """
+        _, funding_rate = self.fetch_funding_rate_history(exchange=exchange, symbol=symbol)
+        return np.std(funding_rate)
 
     def display_large_divergence_single_exchange(self, exchange: str, minus=False, display_num=10) -> pd.DataFrame:
         """

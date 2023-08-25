@@ -1,7 +1,7 @@
 """
 An example of getting large divergence between multi exchange.
 """
-from frarb import FundingRateArbitrage
+from funding_rate_arbitrage.frarb import FundingRateArbitrage
 
 
 if __name__ == '__main__':

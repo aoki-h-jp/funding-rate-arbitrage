@@ -2,10 +2,11 @@ from setuptools import setup
 
 setup(
     name='funding-rate-arbitrage',
-    version="1.0.0",
+    version="1.2.1",
     description='A framework to help you easily perform funding rate arbitrage on major centralized cryptocurrency '
                 'exchanges.',
-    install_requires=['ccxt', 'pandas'],
+    install_requires=['ccxt', 'pandas', 'rich', 'matplotlib'],
+    packages=['funding_rate_arbitrage'],
     author='aoki-h-jp',
     author_email='aoki.hirotaka.biz@gmail.com',
     license='MIT'
