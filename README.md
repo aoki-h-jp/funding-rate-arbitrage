@@ -23,13 +23,13 @@ Arbitrage of different funding rates among different exchanges is another tradin
 
 
 ```bash
-pip install git+https://github.com/aoki-h-jp/funding-rate-arbitrage.git
-```
+pip install git+https://github.com/aoki-h-jp/funding-rate-arbitrage
 
 ## Usage
 ### Fetch FR & commission
+
 ```python
-from frarb import FundingRateArbitrage
+from funding_rate_arbitrage.frarb import FundingRateArbitrage
 
 fr = FundingRateArbitrage()
 
@@ -41,8 +41,9 @@ cm_binance = fr.get_commission(exchange='binance', trade='futures', taker=False)
 ```
 
 ### Fetch FR history
+
 ```python
-from frarb import FundingRateArbitrage
+from funding_rate_arbitrage.frarb import FundingRateArbitrage
 
 fr = FundingRateArbitrage()
 
@@ -53,7 +54,7 @@ fr.fetch_funding_rate_history(exchange='binance', symbol='BTC/USDT:USDT')
 
 
 ### Display large FR divergence on single CEX
-```python
+```bash
 # display large funding rate divergence on bybit
 >>> fr.display_large_divergence_single_exchange(exchange='bybit', display_num=5)
                  Funding Rate [%]  Commission [%]  Revenue [/100 USDT]
@@ -131,7 +132,7 @@ Commission: 0.38 %
 ```
 
 ### Display large FR divergence between CEX
-```python
+```bash
 # display large funding rate divergence between CEX.
 >>> fr.display_large_divergence_multi_exchange(display_num=5, sorted_by='divergence')
                  binance   bybit       okx  bitget    gate    coinex  Divergence [%]  Commission [%]  Revenue [/100 USDT]
