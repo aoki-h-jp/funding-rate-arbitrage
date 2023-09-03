@@ -1,18 +1,14 @@
-from setuptools import setup
-from setuptools import find_packages
+from setuptools import find_packages, setup
 
 setup(
-    name='funding-rate-arbitrage',
+    name="funding-rate-arbitrage",
     version="1.2.1",
-    description='A framework to help you easily perform funding rate arbitrage on major centralized cryptocurrency '
-                'exchanges.',
-    install_requires=['ccxt', 'pandas', 'rich', 'matplotlib'],
-    packages=['funding_rate_arbitrage'],
-    author='aoki-h-jp',
-    author_email='aoki.hirotaka.biz@gmail.com',
-    license='MIT',
-    packages=find_packages(
-        include=['frarb'],
-        exclude=['img']
-    )
+    description="A framework to help you easily perform funding rate arbitrage on major centralized cryptocurrency "
+    "exchanges.",
+    install_requires=["ccxt", "pandas", "rich", "matplotlib"],
+    packages=["funding_rate_arbitrage"],
+    author="aoki-h-jp",
+    author_email="aoki.hirotaka.biz@gmail.com",
+    license="MIT",
+    packages=find_packages(include=["frarb"], exclude=["img"]),
 )

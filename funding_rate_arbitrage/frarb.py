@@ -3,27 +3,28 @@ Main class of funding-rate-arbitrage
 """
 import logging
 from datetime import datetime
+
 import ccxt
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from ccxt import ExchangeError
 from numpy import ndarray
 from rich import print
 from rich.logging import RichHandler
-from ccxt import ExchangeError
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(message)s",
     datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True)]
+    handlers=[RichHandler(rich_tracebacks=True)],
 )
 log = logging.getLogger("rich")
 
 
 class FundingRateArbitrage:
     def __init__(self):
-        self.exchanges = ['binance', 'bybit', 'okx', 'bitget', 'gate', 'coinex']
+        self.exchanges = ["binance", "bybit", "okx", "bitget", "gate", "coinex"]
         # commission
         self.is_taker = True
         self.by_token = False
@@ -41,13 +42,13 @@ class FundingRateArbitrage:
         """
         ex = getattr(ccxt, exchange)()
         info = ex.load_markets()
-        perp = [p for p in info if info[p]['linear']]
+        perp = [p for p in info if info[p]["linear"]]
         fr_d = {}
         for p in perp:
             try:
-                fr_d[p] = ex.fetch_funding_rate(p)['fundingRate']
+                fr_d[p] = ex.fetch_funding_rate(p)["fundingRate"]
             except ExchangeError:
-                log.exception(f'{p} is not perp.')
+                log.exception(f"{p} is not perp.")
         return fr_d
 
     @staticmethod
@@ -64,8 +65,10 @@ class FundingRateArbitrage:
         """
         ex = getattr(ccxt, exchange)()
         funding_history_dict = ex.fetch_funding_rate_history(symbol=symbol)
-        funding_time = [datetime.fromtimestamp(d['timestamp'] * 0.001) for d in funding_history_dict]
-        funding_rate = [d['fundingRate'] * 100 for d in funding_history_dict]
+        funding_time = [
+            datetime.fromtimestamp(d["timestamp"] * 0.001) for d in funding_history_dict
+        ]
+        funding_rate = [d["fundingRate"] * 100 for d in funding_history_dict]
         return funding_time, funding_rate
 
     def figure_funding_rate_history(self, exchange: str, symbol: str) -> None:
@@ -79,19 +82,21 @@ class FundingRateArbitrage:
         Returns: None
 
         """
-        funding_time, funding_rate = self.fetch_funding_rate_history(exchange=exchange, symbol=symbol)
-        plt.plot(funding_time, funding_rate, label='funding rate')
+        funding_time, funding_rate = self.fetch_funding_rate_history(
+            exchange=exchange, symbol=symbol
+        )
+        plt.plot(funding_time, funding_rate, label="funding rate")
         plt.hlines(
             xmin=funding_time[0],
             xmax=funding_time[-1],
             y=sum(funding_rate) / len(funding_rate),
-            label='average',
-            colors='r',
-            linestyles='-.'
+            label="average",
+            colors="r",
+            linestyles="-.",
         )
-        plt.title(f'Funding rate history {symbol}')
-        plt.xlabel('timestamp')
-        plt.ylabel('Funding rate [%]')
+        plt.title(f"Funding rate history {symbol}")
+        plt.xlabel("timestamp")
+        plt.ylabel("Funding rate [%]")
         plt.xticks(rotation=45)
         plt.yticks(rotation=45)
         plt.legend()
@@ -109,10 +114,14 @@ class FundingRateArbitrage:
         Returns: Funding rate standard deviation volatility.
 
         """
-        _, funding_rate = self.fetch_funding_rate_history(exchange=exchange, symbol=symbol)
+        _, funding_rate = self.fetch_funding_rate_history(
+            exchange=exchange, symbol=symbol
+        )
         return np.std(funding_rate)
 
-    def display_large_divergence_single_exchange(self, exchange: str, minus=False, display_num=10) -> pd.DataFrame:
+    def display_large_divergence_single_exchange(
+        self, exchange: str, minus=False, display_num=10
+    ) -> pd.DataFrame:
         """
         Display large funding rate divergence on single CEX.
         Args:
@@ -123,10 +132,17 @@ class FundingRateArbitrage:
         Returns (pd.DataFrame): DataFrame sorted by large funding rate divergence.
 
         """
-        return self.get_large_divergence_dataframe_single_exchange(exchange=exchange, minus=minus)\
-            .sort_values(by='Funding Rate [%]', ascending=minus).head(display_num)
+        return (
+            self.get_large_divergence_dataframe_single_exchange(
+                exchange=exchange, minus=minus
+            )
+            .sort_values(by="Funding Rate [%]", ascending=minus)
+            .head(display_num)
+        )
 
-    def display_large_divergence_multi_exchange(self, display_num=10, sorted_by='revenue') -> pd.DataFrame:
+    def display_large_divergence_multi_exchange(
+        self, display_num=10, sorted_by="revenue"
+    ) -> pd.DataFrame:
         """
         Display large funding rate divergence between multi CEX.
         "multi CEX" refers to self.exchanges.
@@ -137,18 +153,23 @@ class FundingRateArbitrage:
         Returns (pd.DataFrame): DataFrame sorted by large funding rate divergence.
 
         """
-        if sorted_by == 'revenue':
-            sorted_by = 'Revenue [/100 USDT]'
-        elif sorted_by == 'divergence':
-            sorted_by = 'Divergence [%]'
+        if sorted_by == "revenue":
+            sorted_by = "Revenue [/100 USDT]"
+        elif sorted_by == "divergence":
+            sorted_by = "Divergence [%]"
         else:
-            log.error(f'{sorted_by} is not available.')
+            log.error(f"{sorted_by} is not available.")
             raise KeyError
 
-        return self.get_large_divergence_dataframe_multi_exchanges()\
-            .sort_values(by=sorted_by, ascending=False).head(display_num)
+        return (
+            self.get_large_divergence_dataframe_multi_exchanges()
+            .sort_values(by=sorted_by, ascending=False)
+            .head(display_num)
+        )
 
-    def get_large_divergence_dataframe_single_exchange(self, exchange: str, minus=False):
+    def get_large_divergence_dataframe_single_exchange(
+        self, exchange: str, minus=False
+    ):
         """
         Get large funding rate divergence on single CEX.
         Args:
@@ -159,18 +180,44 @@ class FundingRateArbitrage:
 
         """
         fr = self.fetch_all_funding_rate(exchange=exchange)
-        columns = ['Funding Rate [%]', 'Commission [%]', 'Revenue [/100 USDT]']
+        columns = ["Funding Rate [%]", "Commission [%]", "Revenue [/100 USDT]"]
         sr_fr = pd.Series(list(fr.values())) * 100
         # TODO: Check perp or spot or options exists on CEX.
         if minus:
-            cm = self.get_commission(exchange=exchange, trade='futures', taker=self.is_taker, by_token=self.by_token) \
-                 + self.get_commission(exchange=exchange, trade='options', taker=self.is_taker, by_token=self.by_token) \
-                 + self.get_commission(exchange=exchange, trade='spot', taker=self.is_taker, by_token=self.by_token)
+            cm = (
+                self.get_commission(
+                    exchange=exchange,
+                    trade="futures",
+                    taker=self.is_taker,
+                    by_token=self.by_token,
+                )
+                + self.get_commission(
+                    exchange=exchange,
+                    trade="options",
+                    taker=self.is_taker,
+                    by_token=self.by_token,
+                )
+                + self.get_commission(
+                    exchange=exchange,
+                    trade="spot",
+                    taker=self.is_taker,
+                    by_token=self.by_token,
+                )
+            )
             sr_cm = pd.Series([cm * 2 for i in range(len(sr_fr))])
             sr_rv = abs(sr_fr) - sr_cm
         else:
-            cm = self.get_commission(exchange=exchange, trade='futures', taker=self.is_taker, by_token=self.by_token) \
-                 + self.get_commission(exchange=exchange, trade='spot', taker=self.is_taker, by_token=self.by_token)
+            cm = self.get_commission(
+                exchange=exchange,
+                trade="futures",
+                taker=self.is_taker,
+                by_token=self.by_token,
+            ) + self.get_commission(
+                exchange=exchange,
+                trade="spot",
+                taker=self.is_taker,
+                by_token=self.by_token,
+            )
             sr_cm = pd.Series([cm * 2 for i in range(len(sr_fr))])
             sr_rv = sr_fr - sr_cm
 
@@ -188,7 +235,7 @@ class FundingRateArbitrage:
         """
         df = pd.DataFrame()
         for ex in self.exchanges:
-            log.info(f'fetching {ex}')
+            log.info(f"fetching {ex}")
             fr = self.fetch_all_funding_rate(exchange=ex)
             df_ex = pd.DataFrame(fr.values(), index=list(fr.keys()), columns=[ex]).T
             df = pd.concat([df, df_ex])
@@ -199,7 +246,9 @@ class FundingRateArbitrage:
             diff = data.max() - data.min()
             diff_d[i] = diff
 
-        df_diff = pd.DataFrame(diff_d.values(), index=list(diff_d.keys()), columns=['Divergence [%]']).T
+        df_diff = pd.DataFrame(
+            diff_d.values(), index=list(diff_d.keys()), columns=["Divergence [%]"]
+        ).T
         df = pd.concat([df.T, df_diff]).T
 
         comm_list = []
@@ -210,33 +259,57 @@ class FundingRateArbitrage:
             min_fr = df.loc[i][:-1].min()
             # TODO: Check perp or spot or options exists on CEX.
             if max_fr >= 0 and min_fr >= 0:
-                min_commission = self.get_commission(exchange=min_fr_exchange, trade='spot')
-                max_commission = self.get_commission(exchange=max_fr_exchange, trade='futures')
+                min_commission = self.get_commission(
+                    exchange=min_fr_exchange, trade="spot"
+                )
+                max_commission = self.get_commission(
+                    exchange=max_fr_exchange, trade="futures"
+                )
             elif max_fr >= 0 > min_fr:
-                max_commission = self.get_commission(exchange=max_fr_exchange, trade='futures')
-                min_commission = self.get_commission(exchange=min_fr_exchange, trade='futures')
+                max_commission = self.get_commission(
+                    exchange=max_fr_exchange, trade="futures"
+                )
+                min_commission = self.get_commission(
+                    exchange=min_fr_exchange, trade="futures"
+                )
             else:
                 try:
-                    max_commission = self.get_commission(exchange=max_fr_exchange, trade='options') + \
-                                     self.get_commission(exchange=max_fr_exchange, trade='spot')
-                    min_commission = self.get_commission(exchange=min_fr_exchange, trade='futures')
+                    max_commission = self.get_commission(
+                        exchange=max_fr_exchange, trade="options"
+                    ) + self.get_commission(exchange=max_fr_exchange, trade="spot")
+                    min_commission = self.get_commission(
+                        exchange=min_fr_exchange, trade="futures"
+                    )
                 except KeyError:
-                    max_commission = self.get_commission(exchange=max_fr_exchange, trade='futures')
-                    min_commission = self.get_commission(exchange=min_fr_exchange, trade='futures')
+                    max_commission = self.get_commission(
+                        exchange=max_fr_exchange, trade="futures"
+                    )
+                    min_commission = self.get_commission(
+                        exchange=min_fr_exchange, trade="futures"
+                    )
             sum_of_commission = 2 * (max_commission + min_commission)
             comm_list.append(sum_of_commission)
 
         comm_d = {index: commission for index, commission in zip(df.index, comm_list)}
-        df_comm = pd.DataFrame(comm_d.values(), index=list(comm_d.keys()), columns=['Commission [%]']).T
+        df_comm = pd.DataFrame(
+            comm_d.values(), index=list(comm_d.keys()), columns=["Commission [%]"]
+        ).T
         df = pd.concat([df.T, df_comm]).T
 
-        revenue = [diff_value - comm_value for diff_value, comm_value in zip(diff_d.values(), comm_d.values())]
-        df_rv = pd.DataFrame(revenue, index=list(comm_d.keys()), columns=['Revenue [/100 USDT]']).T
+        revenue = [
+            diff_value - comm_value
+            for diff_value, comm_value in zip(diff_d.values(), comm_d.values())
+        ]
+        df_rv = pd.DataFrame(
+            revenue, index=list(comm_d.keys()), columns=["Revenue [/100 USDT]"]
+        ).T
         df = pd.concat([df.T, df_rv]).T
 
         return df
 
-    def display_one_by_one_single_exchange(self, exchange: str, minus=False, display_num=10):
+    def display_one_by_one_single_exchange(
+        self, exchange: str, minus=False, display_num=10
+    ):
         """
 
         Args:
@@ -247,25 +320,31 @@ class FundingRateArbitrage:
         Returns: None
 
         """
-        df = self.get_large_divergence_dataframe_single_exchange(exchange=exchange, minus=minus)
+        df = self.get_large_divergence_dataframe_single_exchange(
+            exchange=exchange, minus=minus
+        )
         # TODO: Check perp or spot or options exists on CEX.
-        for i in df.sort_values(by='Funding Rate [%]', ascending=minus).head(display_num).index:
-            print('------------------------------------------------')
+        for i in (
+            df.sort_values(by="Funding Rate [%]", ascending=minus)
+            .head(display_num)
+            .index
+        ):
+            print("------------------------------------------------")
             revenue = df.loc[i]["Revenue [/100 USDT]"]
             if revenue > 0:
-                print(f'[bold deep_sky_blue1]Revenue: {revenue} / 100USDT[/]')
+                print(f"[bold deep_sky_blue1]Revenue: {revenue} / 100USDT[/]")
             else:
-                print(f'[bold red]Revenue: {revenue} / 100USDT[/]')
+                print(f"[bold red]Revenue: {revenue} / 100USDT[/]")
             if minus:
-                print(f'[bold red]SELL: {i} Options[/]')
-                print(f'[bold blue]BUY: {i} Perp[/]')
+                print(f"[bold red]SELL: {i} Options[/]")
+                print(f"[bold blue]BUY: {i} Perp[/]")
             else:
-                print(f'[bold red]SELL: {i} Perp[/]')
-                print(f'[bold blue]BUY: {i} Spot[/]')
+                print(f"[bold red]SELL: {i} Perp[/]")
+                print(f"[bold blue]BUY: {i} Spot[/]")
             print(f'Funding Rate: {df.loc[i]["Funding Rate [%]"]:.4f} %')
             print(f'Commission: {df.loc[i]["Commission [%]"]} %')
 
-    def display_one_by_one_multi_exchanges(self, display_num=10, sorted_by='revenue'):
+    def display_one_by_one_multi_exchanges(self, display_num=10, sorted_by="revenue"):
         """
 
         Args:
@@ -275,35 +354,43 @@ class FundingRateArbitrage:
         Returns: None
 
         """
-        if sorted_by == 'revenue':
-            sorted_by = 'Revenue [/100 USDT]'
-        elif sorted_by == 'divergence':
-            sorted_by = 'Divergence [%]'
+        if sorted_by == "revenue":
+            sorted_by = "Revenue [/100 USDT]"
+        elif sorted_by == "divergence":
+            sorted_by = "Divergence [%]"
         else:
-            log.error(f'{sorted_by} is not available.')
+            log.error(f"{sorted_by} is not available.")
             raise KeyError
         df = self.get_large_divergence_dataframe_multi_exchanges()
         # TODO: Check perp or spot or options exists on CEX.
         for i in df.sort_values(by=sorted_by, ascending=False).head(display_num).index:
-            print('------------------------------------------------')
+            print("------------------------------------------------")
             revenue = df.loc[i]["Revenue [/100 USDT]"]
             if revenue > 0:
-                print(f'[bold deep_sky_blue1]Revenue: {revenue:.4f} USDT / 100USDT[/]')
+                print(f"[bold deep_sky_blue1]Revenue: {revenue:.4f} USDT / 100USDT[/]")
             else:
-                print(f'[bold red]Revenue: {revenue:.4f} USDT / 100USDT[/]')
+                print(f"[bold red]Revenue: {revenue:.4f} USDT / 100USDT[/]")
             max_fr_exchange = df.loc[i][:-3].idxmax()
             min_fr_exchange = df.loc[i][:-3].idxmin()
             max_fr = df.loc[i][:-3].max()
             min_fr = df.loc[i][:-3].min()
             if max_fr > 0 and min_fr > 0:
-                print(f'[bold red]SELL: {max_fr_exchange} {i} Perp (Funding Rate {max_fr:.4f} %)[/]')
-                print(f'[bold blue]BUY: {min_fr_exchange} {i} Spot[/]')
+                print(
+                    f"[bold red]SELL: {max_fr_exchange} {i} Perp (Funding Rate {max_fr:.4f} %)[/]"
+                )
+                print(f"[bold blue]BUY: {min_fr_exchange} {i} Spot[/]")
             elif max_fr > 0 > min_fr:
-                print(f'[bold red]SELL: {max_fr_exchange} {i} Perp (Funding Rate {max_fr:.4f} %)[/]')
-                print(f'[bold blue]BUY: {min_fr_exchange} {i} Perp (Funding Rate {min_fr:.4f} %)[/]')
+                print(
+                    f"[bold red]SELL: {max_fr_exchange} {i} Perp (Funding Rate {max_fr:.4f} %)[/]"
+                )
+                print(
+                    f"[bold blue]BUY: {min_fr_exchange} {i} Perp (Funding Rate {min_fr:.4f} %)[/]"
+                )
             else:
-                print(f'[bold red]SELL: {max_fr_exchange} {i} Options[/]')
-                print(f'[bold blue]BUY: {min_fr_exchange} {i} Perp (Funding Rate {min_fr:.4f} %)[/]')
+                print(f"[bold red]SELL: {max_fr_exchange} {i} Options[/]")
+                print(
+                    f"[bold blue]BUY: {min_fr_exchange} {i} Perp (Funding Rate {min_fr:.4f} %)[/]"
+                )
             print(f'Divergence: {df.loc[i]["Divergence [%]"]:.4f} %')
             print(f'Commission: {df.loc[i]["Commission [%]"]:.4f} %')
 
@@ -342,13 +429,13 @@ class FundingRateArbitrage:
 
         """
         # https://www.binance.com/en/fee/schedule
-        if exchange == 'binance':
-            if trade == 'spot':
+        if exchange == "binance":
+            if trade == "spot":
                 if by_token:
                     return 0.075
                 else:
                     return 0.1
-            elif trade == 'futures':
+            elif trade == "futures":
                 if taker:
                     if by_token:
                         return 0.036
@@ -359,92 +446,92 @@ class FundingRateArbitrage:
                         return 0.018
                     else:
                         return 0.02
-            elif trade == 'options':
+            elif trade == "options":
                 return 0.02
             else:
-                log.error(f'{trade} is not available on {exchange}.')
+                log.error(f"{trade} is not available on {exchange}.")
                 raise KeyError
 
         # https://www.bybit.com/ja-JP/help-center/bybitHC_Article?id=360039261154&language=ja
-        if exchange == 'bybit':
-            if trade == 'spot':
+        if exchange == "bybit":
+            if trade == "spot":
                 return 0.1
-            elif trade == 'futures':
+            elif trade == "futures":
                 if taker:
                     return 0.06
                 else:
                     return 0.01
-            elif trade == 'options':
+            elif trade == "options":
                 return 0.03
             else:
-                log.error(f'{trade} is not available on {exchange}.')
+                log.error(f"{trade} is not available on {exchange}.")
                 raise KeyError
 
         # https://www.okx.com/fees
-        if exchange == 'okx':
-            if trade == 'spot':
+        if exchange == "okx":
+            if trade == "spot":
                 if taker:
                     return 0.1
                 else:
                     return 0.08
-            elif trade == 'futures':
+            elif trade == "futures":
                 if taker:
                     return 0.05
                 else:
                     return 0.02
-            elif trade == 'options':
+            elif trade == "options":
                 if taker:
                     return 0.03
                 else:
                     return 0.02
             else:
-                log.error(f'{trade} is not available on {exchange}.')
+                log.error(f"{trade} is not available on {exchange}.")
                 raise KeyError
 
         # https://www.bitget.com/ja/rate/
-        if exchange == 'bitget':
-            if trade == 'spot':
+        if exchange == "bitget":
+            if trade == "spot":
                 if by_token:
                     return 0.08
                 else:
                     return 0.1
-            elif trade == 'futures':
+            elif trade == "futures":
                 if taker:
                     return 0.051
                 else:
                     return 0.017
             else:
-                log.error(f'{trade} is not available on {exchange}.')
+                log.error(f"{trade} is not available on {exchange}.")
                 raise KeyError
 
         # https://www.gate.io/ja/fee
-        if exchange == 'gate':
-            if trade == 'spot':
+        if exchange == "gate":
+            if trade == "spot":
                 if by_token:
                     return 0.15
                 else:
                     return 0.2
-            elif trade == 'futures':
+            elif trade == "futures":
                 if taker:
                     return 0.05
                 else:
                     return 0.015
             else:
-                log.error(f'{trade} is not available on {exchange}.')
+                log.error(f"{trade} is not available on {exchange}.")
                 raise KeyError
 
         # https://www.coinex.zone/fees?type=spot&market=normal
-        if exchange == 'coinex':
-            if trade == 'spot':
+        if exchange == "coinex":
+            if trade == "spot":
                 if by_token:
                     return 0.16
                 else:
                     return 0.2
-            elif trade == 'futures':
+            elif trade == "futures":
                 if taker:
                     return 0.05
                 else:
                     return 0.03
             else:
-                log.error(f'{trade} is not available on {exchange}.')
+                log.error(f"{trade} is not available on {exchange}.")
                 raise KeyError
